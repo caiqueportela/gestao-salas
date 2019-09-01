@@ -1,0 +1,323 @@
+nelmio_api_doc:
+  areas:
+    path_patterns:
+      - ^/api(?!/doc$)
+    host_patterns:
+      - ^api\.
+  documentation:
+    host: localhost:8080
+    schemes: [http]
+    info:
+      title: API Sala
+      description: API para gestão de salas e seus respectivos agendamentos.
+      version: 1.0.0
+      contact:
+        name: "API Suporte"
+        email: "caiquesportela@gmail.com"
+    swagger: 2.0
+    basePath: "/api"
+    api_key: []
+    securityDefinitions:
+      Bearer:
+        type: apiKey
+        name: Authorization
+        in: header
+    paths:
+      /login:
+        post:
+          tags:
+            - login
+          description: Autentica na aplicação
+          consumes:
+            - application/json
+          produces:
+            - application/json
+          parameters:
+            - name: usuario
+              in: body
+              description: Dados do usuário a se autenticar
+              required: true
+              schema:
+                type: object
+                required:
+                  - usuario
+                  - senha
+                properties:
+                  usuario:
+                    type: string
+                  senha:
+                    type: string
+          responses:
+            '200':
+              description: Login realizado com sucesso
+            '400':
+              description: Dados não informados
+            '401':
+              description: Login inválido
+      /salas:
+        post:
+          tags:
+            - salas
+          description: Cria uma nova sala
+          consumes:
+            - application/json
+          produces:
+            - application/json
+          security:
+            - Bearer: []
+          parameters:
+            - name: dados
+              in: body
+              description: Dados do sala a ser criada
+              required: true
+              schema:
+                type: object
+                required:
+                  - nome
+                  - descricao
+                properties:
+                  nome:
+                    type: string
+                  descricao:
+                    type: string
+          responses:
+            '201':
+              description: Dados da sala criada
+            '401':
+              description: Acesso não autorizado
+        get:
+          tags:
+            - salas
+          description: Lista as salas
+          produces:
+            - application/json
+          security:
+            - Bearer: []
+          responses:
+            '200':
+              description: Lista com os dados de todas salas
+            '401':
+              description: Acesso não autorizado
+      /salas/{id}:
+        get:
+          tags:
+            - salas
+          description: Retorna da sala com o ID
+          produces:
+            - application/json
+          parameters:
+            - name: id
+              in: path
+              description: Id da sala
+              required: true
+          security:
+            - Bearer: []
+          responses:
+            '200':
+              description: Lista com os dados da sala
+            '204':
+              description: Sala não encontrada
+            '401':
+              description: Acesso não autorizado
+        delete:
+          tags:
+            - salas
+          description: Apaga a sala com o ID fornecido
+          parameters:
+            - name: id
+              in: path
+              description: Id da sala
+              required: true
+          security:
+            - Bearer: []
+          responses:
+            '204':
+              description: Sala não encontrada
+            '401':
+              description: Acesso não autorizado
+        put:
+          tags:
+            - salas
+          description: Atualiza dados da sala
+          consumes:
+            - application/json
+          produces:
+            - application/json
+          security:
+            - Bearer: []
+          parameters:
+            - name: dados
+              in: body
+              description: Novos dados da sala
+              required: true
+              schema:
+                type: object
+                required:
+                  - nome
+                  - descricao
+                properties:
+                  nome:
+                    type: string
+                  descricao:
+                    type: string
+          responses:
+            '200':
+              description: Dados da sala
+            '401':
+              description: Acesso não autorizado
+      /agendamentos:
+        post:
+          tags:
+            - agendamentos
+          description: Cria um novo agendamento para uso de uma sala
+          consumes:
+            - application/json
+          produces:
+            - application/json
+          security:
+            - Bearer: []
+          parameters:
+            - name: dados
+              in: body
+              description: Dados do agendamento de sala a ser criado
+              required: true
+              schema:
+                type: object
+                required:
+                  - salaId
+                  - observacao
+                  - dataInicio
+                  - dataFim
+                  - horaInicio
+                  - horaFim
+                properties:
+                  salaId:
+                    type: integer
+                    example: 1
+                  observacao:
+                    type: string
+                  dataInicio:
+                    type: string
+                    format: full-date
+                    example: "2018-12-31"
+                  dataFim:
+                    type: string
+                    format: full-date
+                    example: "2019-01-15"
+                  horaInicio:
+                    type: string
+                    format: partial-time
+                    example: "08:00"
+                  horaFim:
+                    type: string
+                    format: partial-time
+                    example: "18:00"
+                responses:
+                  '201':
+                    description: Dados do agendamento criado
+                  '400':
+                    description: Sala indisponivel para o periodo informado
+                  '401':
+                    description: Acesso não autorizado
+        get:
+          tags:
+            - agendamentos
+          description: Lista os agendamento
+          produces:
+            - application/json
+          security:
+            - Bearer: []
+          responses:
+            '200':
+              description: Lista com os dados de todos agendamentos
+            '401':
+              description: Acesso não autorizado
+      /agendamentos/{id}:
+        get:
+          tags:
+            - agendamentos
+          description: Retorna o agendamentos com o ID
+          produces:
+            - application/json
+          security:
+            - Bearer: []
+          parameters:
+            - name: id
+              in: path
+              description: Id do agendamentos
+              required: true
+              security:
+                - Bearer: []
+          responses:
+            '200':
+              description: Lista com os dados do agendamentos
+            '204':
+              description: Agendamento não encontrado
+            '401':
+              description: Acesso não autorizado
+        delete:
+          tags:
+            - agendamentos
+          description: Apaga o agendamentos com o ID fornecido
+          parameters:
+            - name: id
+              in: path
+              description: Id do agendamentos
+              required: true
+          security:
+            - Bearer: []
+          responses:
+            '204':
+              description: Agendamento não encontrado
+            '401':
+              description: Acesso não autorizado
+        put:
+          tags:
+            - agendamentos
+          description: Atualiza dados do agendamentos
+          consumes:
+            - application/json
+          produces:
+            - application/json
+          security:
+            - Bearer: []
+          parameters:
+            - name: dados
+              in: body
+              description: Novos dados do agendamentos
+              required:
+                - salaId
+                - observacao
+                - dataInicio
+                - dataFim
+                - horaInicio
+                - horaFim
+              properties:
+                salaId:
+                  type: integer
+                  example: 1
+                observacao:
+                  type: string
+                dataInicio:
+                  type: string
+                  format: full-date
+                  example: "2018-12-31"
+                dataFim:
+                  type: string
+                  format: full-date
+                  example: "2019-01-15"
+                horaInicio:
+                  type: string
+                  format: partial-time
+                  example: "08:00"
+                horaFim:
+                  type: string
+                  format: partial-time
+                  example: "18:00"
+          responses:
+            '200':
+              description: Dados do agendamentos
+            '400':
+              description: Sala indisponivel para o periodo informado
+            '401':
+              description: Acesso não autorizado
