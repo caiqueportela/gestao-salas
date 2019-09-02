@@ -48,8 +48,6 @@ class AgendamentosController extends AbstractController
     /**
      * @param Request $request
      * @return Response
-     * @throws \Doctrine\ORM\NoResultException
-     * @throws \Doctrine\ORM\NonUniqueResultException
      * @Route("/api/agendamentos", methods={"POST"})
      */
     public function criar(Request $request): Response
@@ -119,8 +117,6 @@ class AgendamentosController extends AbstractController
      * @param int $id
      * @param Request $request
      * @return Response
-     * @throws \Doctrine\ORM\NoResultException
-     * @throws \Doctrine\ORM\NonUniqueResultException
      * @Route("/api/agendamentos/{id}", methods={"PUT"})
      */
     public function atualizar(int $id, Request $request): Response
@@ -135,7 +131,7 @@ class AgendamentosController extends AbstractController
                 throw new \InvalidArgumentException();
             }
 
-            if (!$this->validarDisponibilidade($agendamentoEnviado)) {
+            if (!$this->validarDisponibilidade($agendamentoEnviado, $id)) {
                 return new JsonResponse([
                     'erro' => 'Sala já reservada para o período solicitado'
                 ], Response::HTTP_BAD_REQUEST);
@@ -205,10 +201,10 @@ class AgendamentosController extends AbstractController
 
     /**
      * @param Agendamentos $agendamento
+     * @param int|null $id
      * @return bool
-     * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    private function validarDisponibilidade(Agendamentos $agendamento): bool
+    private function validarDisponibilidade(Agendamentos $agendamento, int $id = null): bool
     {
         $classeSalas = Salas::class;
         $classeAgendamentos = Agendamentos::class;
@@ -221,9 +217,31 @@ class AgendamentosController extends AbstractController
             ->setParameter("dataFinal", $agendamento->getDataFim()->format('Y-m-d'))
             ->setParameter('horaInicial', $agendamento->getHoraInicio()->format('H:i'))
             ->setParameter('horaFinal', $agendamento->getHoraFim()->format('H:i'));
-        /** @var Agendamentos $busca */
-        $busca = $query->getOneOrNullResult();
 
-        return is_null($busca);
+        /** @var Agendamentos $agendamentosLista */
+        $agendamentosLista = $query->getResult();
+
+        if (is_null($agendamentosLista)) {
+            return true;
+        }
+
+        $count  = 0;
+        foreach ($agendamentosLista as $agend) {
+             if ($agendamento->getHoraInicio() > $agend->getHoraFim() || $agendamento->getHoraFim() < $agend->getHoraInicio()) {
+                 if (!is_null($id)) {
+                     if ($agend->getId() != $id && $agend->getSala()->getId() == $agendamento->getSala()->getId()) {
+                         $count++;
+                     }
+                 } else {
+                     $count++;
+                 }
+            }
+        }
+
+        if ($count == 0) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }

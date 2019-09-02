@@ -157,6 +157,7 @@ class Agendamentos implements \JsonSerializable
             'horaInicio' => $this->getHoraInicioFormatado(),
             'horaFim' => $this->getHoraFimFormatado(),
             'observacao' => $this->observacao,
+            'salaId' => $this->getSala()->getId(),
             '_links' => [
                 [
                     'rel' => 'self',
