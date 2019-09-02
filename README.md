@@ -23,7 +23,9 @@ Certifique-se de realizar a configuração do MySql, e criar um banco de dados p
 DATABASE_URL=mysql://4linux:4linux@127.0.0.1:3306/gestao_salas
 ```
 
-Altere as configurações de acesso a base de dados, conforme o endereço IP, usuário, senha e base criada no mesmo.
+Altere as configurações de acesso a base de dados, conforme o endereço IP, usuário, senha e base criada no mesmo. 
+
+**O usuário deve ter acesso total a base criada, pois será utilizado para criar tabelas.**
 
 Ainda na pasta do projeto, execute os comandos:
 
@@ -58,3 +60,18 @@ A documentação dos endpoints pode ser acessada pelo endereço */api/doc*, base
 ```
 http://127.0.0.1:8080/api/doc
 ```
+
+# MySql
+
+Um exemplo de como realizar a configuração necessário do banco.
+
+Conectado ao shell do MySql, com usuário *root* ou um que possua acesso a criar bases e usuários, execute os comandos:
+
+```
+create database gestao_salas;
+CREATE USER '4linux'@'localhost' IDENTIFIED WITH mysql_native_password BY '4linux';
+GRANT ALL PRIVILEGES ON gestao_salas.* TO '4linux'@'localhost';
+flush privileges;
+```
+
+Com esses comandos, o banco já estará preparado, e não será necessário alterar nada no arquivo *.env*.
