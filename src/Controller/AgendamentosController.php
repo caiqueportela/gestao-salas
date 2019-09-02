@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Agendamentos;
-use App\Helper\ExtratorDadosRequest;
+use App\Entity\Salas;
 use App\Repository\AgendamentosRepository;
 use App\Repository\SalasRepository;
 use DateTime;
@@ -25,10 +25,6 @@ class AgendamentosController extends AbstractController
      */
     private $entityManager;
     /**
-     * @var ExtratorDadosRequest
-     */
-    private $extratorDadosRequest;
-    /**
      * @var SalasRepository
      */
     private $salasRepository;
@@ -37,18 +33,15 @@ class AgendamentosController extends AbstractController
      * AgendamentosController constructor.
      * @param AgendamentosRepository $agendamentosRepository
      * @param EntityManagerInterface $entityManager
-     * @param ExtratorDadosRequest $extratorDadosRequest
      */
     public function __construct(
         AgendamentosRepository $agendamentosRepository,
         SalasRepository $salasRepository,
-        EntityManagerInterface $entityManager,
-        ExtratorDadosRequest $extratorDadosRequest
+        EntityManagerInterface $entityManager
     )
     {
         $this->agendamentosRepository = $agendamentosRepository;
         $this->entityManager = $entityManager;
-        $this->extratorDadosRequest = $extratorDadosRequest;
         $this->salasRepository = $salasRepository;
     }
 
@@ -98,9 +91,7 @@ class AgendamentosController extends AbstractController
      */
     public function buscarTodas(Request $request): Response
     {
-        $ordenacao = $this->extratorDadosRequest->buscaDadosOrdenacao($request);
-        $filtro = $this->extratorDadosRequest->buscaDadosFiltro($request);
-        $agendamentosLista = $this->agendamentosRepository->findBy($filtro, $ordenacao);
+        $agendamentosLista = $this->agendamentosRepository->findAll();
 
         $status = is_null($agendamentosLista)
             ? Response::HTTP_NO_CONTENT
@@ -200,27 +191,32 @@ class AgendamentosController extends AbstractController
         $agendamento = new Agendamentos();
         $agendamento
             ->setSala($sala)
-            ->setObservacao($dadosJson->observacao)
             ->setDataInicio($dataInicio)
             ->setDataFim($dataFim)
             ->setHoraInicio($horaInicio)
             ->setHoraFim($horaFim);
+
+        if (array_key_exists('observacao', $dadosJson)) {
+            $agendamento->setObservacao($dadosJson->observacao);
+        }
 
         return $agendamento;
     }
 
     /**
      * @param Agendamentos $agendamento
-     * @throws \Doctrine\ORM\NoResultException
+     * @return bool
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
     private function validarDisponibilidade(Agendamentos $agendamento): bool
     {
+        $classeSalas = Salas::class;
         $classeAgendamentos = Agendamentos::class;
-        $dql = "SELECT a FROM $classeAgendamentos a WHERE 
+        $dql = "SELECT a FROM $classeAgendamentos a JOIN $classeSalas s WHERE a.sala = s AND s.id = :salaId AND 
             (a.dataInicio BETWEEN :dataInicial AND :dataFinal OR a.dataFim BETWEEN :dataInicial AND :dataFinal) AND 
             (a.horaInicio BETWEEN :horaInicial AND :horaFinal OR a.horaFim BETWEEN :horaInicial AND :horaFinal)";
         $query = $this->entityManager->createQuery($dql)
+            ->setParameter("salaId", $agendamento->getSala()->getId())
             ->setParameter("dataInicial", $agendamento->getDataInicio()->format('Y-m-d'))
             ->setParameter("dataFinal", $agendamento->getDataFim()->format('Y-m-d'))
             ->setParameter('horaInicial', $agendamento->getHoraInicio()->format('H:i'))

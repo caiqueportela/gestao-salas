@@ -2,12 +2,11 @@
 
 namespace App\Controller;
 
+use App\Entity\Agendamentos;
 use App\Entity\Salas;
-use App\Helper\ExtratorDadosRequest;
 use App\Repository\SalasRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Nelmio\ApiDocBundle\Annotation\Model;
-use Swagger\Annotations as SWG;
+use Doctrine\ORM\Query\ResultSetMappingBuilder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,22 +23,16 @@ class SalasController extends AbstractController
      * @var EntityManagerInterface
      */
     private $entityManager;
-    /**
-     * @var ExtratorDadosRequest
-     */
-    private $extratorDadosRequest;
 
     /**
      * SalasController constructor.
      * @param SalasRepository $salasRepository
      * @param EntityManagerInterface $entityManager
-     * @param ExtratorDadosRequest $extratorDadosRequest
      */
-    public function __construct(SalasRepository $salasRepository, EntityManagerInterface $entityManager, ExtratorDadosRequest $extratorDadosRequest)
+    public function __construct(SalasRepository $salasRepository, EntityManagerInterface $entityManager)
     {
         $this->salasRepository = $salasRepository;
         $this->entityManager = $entityManager;
-        $this->extratorDadosRequest = $extratorDadosRequest;
     }
 
     /**
@@ -76,13 +69,37 @@ class SalasController extends AbstractController
     /**
      * @param Request $request
      * @return Response
-     * @Route("/api/salas", methods={"GEt"})
+     * @Route("/api/salas", methods={"GET"})
      */
     public function buscarTodas(Request $request): Response
     {
-        $ordenacao = $this->extratorDadosRequest->buscaDadosOrdenacao($request);
-        $filtro = $this->extratorDadosRequest->buscaDadosFiltro($request);
-        $salasLista = $this->salasRepository->findBy($filtro, $ordenacao);
+        $nome = $request->query->get("nome");
+        $disponivel = $request->query->get("disponivel");
+
+        $classeSalas = Salas::class;
+        $classeAgendamentos = Agendamentos::class;
+        $dataHora = new \DateTime();
+
+        if ($disponivel == "1") {
+            $rsm = new ResultSetMappingBuilder($this->entityManager);
+            $rsm->addRootEntityFromClassMetadata(Salas::class, 's');
+            $query = $this->entityManager->createNativeQuery("SELECT s.* FROM salas AS s WHERE s.nome LIKE :nome AND s.id NOT IN 
+                (SELECT a.sala_id FROM agendamentos AS a WHERE 
+                    (a.data_inicio <= :d AND a.data_fim >= :d) AND 
+                    (a.hora_inicio < :h AND a.hora_fim >= :h))", $rsm);
+            $query
+                ->setParameter("nome", '%'.$nome.'%')
+                ->setParameter("d", $dataHora->format("Y-m-d"))
+                ->setParameter("h", $dataHora->format("H:i"));
+        } else {
+            $classeSalas = Salas::class;
+            $dql = "SELECT s FROM $classeSalas s WHERE s.nome LIKE :nome";
+            $query = $this->entityManager->createQuery($dql)
+                ->setParameter("nome", '%'.$nome.'%');
+        }
+
+        /** @var Salas $busca */
+        $salasLista = $query->getResult();
 
         $status = is_null($salasLista)
             ? Response::HTTP_NO_CONTENT
@@ -146,9 +163,10 @@ class SalasController extends AbstractController
     {
         $dadosJson = json_decode($json);
         $sala = new Salas();
-        $sala
-            ->setNome($dadosJson->nome)
-            ->setDescricao($dadosJson->descricao);
+        $sala->setNome($dadosJson->nome);
+        if (array_key_exists('descricao', $dadosJson)) {
+            $sala->setDescricao($dadosJson->descricao);
+        }
 
         return $sala;
     }

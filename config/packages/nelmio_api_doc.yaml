@@ -93,6 +93,15 @@ nelmio_api_doc:
             - application/json
           security:
             - Bearer: []
+          parameters:
+            - name: nome
+              in: query
+              required: false
+              description: Nome da sala
+            - name: disponivel
+              in: query
+              required: false
+              description: Listar apenas salas disponiveis? (1 = sim)
           responses:
             '200':
               description: Lista com os dados de todas salas
@@ -163,6 +172,25 @@ nelmio_api_doc:
           responses:
             '200':
               description: Dados da sala
+            '401':
+              description: Acesso não autorizado
+      /salas/{id}/agendamentos:
+        get:
+          tags:
+            - salas
+          description: Retorna os agendamento da sala com o ID fornecido
+          produces:
+            - application/json
+          parameters:
+            - name: id
+              in: path
+              description: Id da sala
+              required: true
+          security:
+            - Bearer: []
+          responses:
+            '200':
+              description: Lista com os agendamentos da sala
             '401':
               description: Acesso não autorizado
       /agendamentos:
