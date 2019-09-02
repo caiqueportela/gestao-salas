@@ -30,10 +30,12 @@ Altere as configurações de acesso a base de dados, conforme o endereço IP, us
 Ainda na pasta do projeto, execute os comandos:
 
 ```
-php bin\console doctrine:migration:migrate
-php bin\console doctrine:fixtures:load
+php bin/console doctrine:migration:migrate
+php bin/console doctrine:fixtures:load
 ```
-**Pode ser solicitado a confirmação da execução e até mesmo informar que dados serão perdidos, mas pode continuar normalmente.**
+**Obs: Pode ser solicitado a confirmação da execução e até mesmo informar que dados serão perdidos, mas pode continuar normalmente.**
+
+**Obs2: A direção das barras pode variar dependendo do SO onde está realizando a configuração.**
 
 Ao executa-los, será criado as tabelas necessárias para correto funcionamento da API e populado a tabela de usuários com dados para podermos autenticar na API.
 
@@ -53,13 +55,20 @@ Para se autenticar, acesse o endereço do seu servidor + */login*, utilizando o 
 
 Será retornado um access token, que deverá ser enviado nas demais autenticações via Bearer Authentication.
 
+# Execução
+
+Para iniciar o projeto, ainda na pasta dele, basta executar o comando:
+
+```
+php -S 0.0.0.0:8080 -t public/
+```
+
+Ele será iniciado com a URL base <http://localhost:8080>
+
+Para acessar a tela onde poderá realizar buscas, basta acessar a URL diretamento <http://localhost:8080/>.
 # Documentação
 
-A documentação dos endpoints pode ser acessada pelo endereço */api/doc*, baseado na URL do seu servidor. Algo como:
-
-```
-http://127.0.0.1:8080/api/doc
-```
+A documentação dos endpoints pode ser acessada pelo endereço */api/doc*, baseado na URL do seu servidor. Algo como <http://localhost:8080/api/doc>.
 
 # MySql
 
