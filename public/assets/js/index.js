@@ -10,7 +10,6 @@ $( "#buscar" ).click(function() {
     if ($("#disponivel").is(':checked')) {
         url += "&disponivel=1";
     }
-    console.log(url);
     $.ajax({
         type    : "GET",
         url     : url,

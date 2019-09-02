@@ -227,11 +227,11 @@ nelmio_api_doc:
                   dataInicio:
                     type: string
                     format: full-date
-                    example: "2018-12-31"
+                    example: "31/12/2018"
                   dataFim:
                     type: string
                     format: full-date
-                    example: "2019-01-15"
+                    example: "15/01/2019"
                   horaInicio:
                     type: string
                     format: partial-time
